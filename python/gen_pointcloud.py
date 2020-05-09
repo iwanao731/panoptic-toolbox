@@ -56,10 +56,6 @@ with open(syncTableFileName) as sfile: #Panoptic Sync Tables
     ksync = json.load(sfile)
 
 knames = {str(id):('KINECTNODE{0}').format(str(id)) for id in range(1, 10+1)}
-'''
-knames = [('KINECTNODE{0}').format(id) for id in range(1, 10)]
-print(knames[0])
-'''
 
 with open(panopSyncTableFileName) as psfile: #Panoptic Sync Tables
     psync = json.load(psfile)
@@ -98,25 +94,7 @@ for hd_index in hd_index_list:
 	# Iterating kinects. Change this if you want a subpart
 	for idk in range(1, len(panoptic_camNames) + 1): #kinect x 10
 		# select correspondence frame index rgb and depth
-		# color
-		c_univ_time = np.array(ksync['kinect']['color'][knames[str(idk)]]['univ_time']) 
-		diff_time = abs(selUnivTime - (c_univ_time - 6.25)) # Why original code is minus 6.25?
-		cindex = np.argmin(diff_time)
-		time_distc = diff_time[cindex]
-
-		# depth
-		d_univ_time = np.array(ksync['kinect']['depth'][knames[str(idk)]]['univ_time']) 
-		diff_time = abs(selUnivTime - d_univ_time)
-		dindex = np.argmin(diff_time)
-		time_distd = diff_time[dindex]
-
-		# Filtering if current kinect data is far from the selected time
-		val = abs(d_univ_time[dindex] - c_univ_time[cindex])
-		if abs(val) > 6.5:
-			print('Skipping {0}, depth-color diff {1}\n'.format(idk, val))
-
-		if time_distc > 30 or time_distd > 17:
-			print('Skipping {0}\n'.format(idk))
+			cindex, dindex = checkSync(ksync, knames, selUnivTime, idk)
 
 		# extract image and depth
 		rgbFileName = ('{0}/{1}/{1}_{2}.jpg').format(kinectImgDir, panoptic_camNames[idk-1], str('{:0=8}'.format(cindex)))
